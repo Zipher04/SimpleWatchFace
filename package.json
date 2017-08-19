@@ -1,0 +1,24 @@
+{
+    "author": "zipher04@yahoo.com.tw",
+    "dependencies": {},
+    "keywords": [],
+    "name": "simple-watch-face",
+    "pebble": {
+        "displayName": "Simple Watch Face",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "basalt"
+        ],
+        "uuid": "50d76032-51f1-4701-8cc0-25c54de8d199",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
