@@ -5,23 +5,6 @@ static TextLayer *s_time_layer;
 static TextLayer *s_weekday_layer;
 static TextLayer *s_date_layer;
 
-static void update_day( void )
-{
-  // Get a tm structure
-  time_t temp_time = time(NULL);
-  struct tm *tick_time = localtime(&temp_time);
-
-  // Write the current weekday and date into a buffer
-  static char s_weekday_buffer[10];
-  static char s_date_buffer[11];
-  strftime( s_weekday_buffer, sizeof(s_weekday_buffer), "%A", tick_time);
-  strftime( s_date_buffer, sizeof(s_date_buffer), "%F", tick_time);
-
-  // Display this time on the TextLayer
-  text_layer_set_text( s_weekday_layer, s_weekday_buffer );
-  text_layer_set_text( s_date_layer, s_date_buffer );
-}
-
 static void update_time( void )
 {
   // Get a tm structure
@@ -34,11 +17,16 @@ static void update_time( void )
   
   // Display this time on the TextLayer
   text_layer_set_text( s_time_layer, s_time_buffer );
-}
+	
+	// Write the current weekday and date into a buffer
+  static char s_weekday_buffer[10];
+  static char s_date_buffer[11];
+  strftime( s_weekday_buffer, sizeof(s_weekday_buffer), "%A", tick_time);
+  strftime( s_date_buffer, sizeof(s_date_buffer), "%F", tick_time);
 
-static void tick_day_handler(struct tm *tick_time, TimeUnits units_changed)
-{
-  update_day();
+  // Display this time on the TextLayer
+  text_layer_set_text( s_weekday_layer, s_weekday_buffer );
+  text_layer_set_text( s_date_layer, s_date_buffer );
 }
 
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
@@ -109,11 +97,9 @@ static void Initialize( void )
   
   // Make sure the time is displayed from the start
   update_time();
-  update_day();
   
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_minute_handler);
-  tick_timer_service_subscribe(DAY_UNIT, tick_day_handler);
 }
 
 static void Finalize( void )
