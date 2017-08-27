@@ -68,7 +68,7 @@ static void main_window_load(Window *window)
   s_weekday_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(30, 22), bounds.size.w, 30));
   s_date_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(115, 95), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(115, 90), bounds.size.w, 25));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color( s_time_layer, GColorClear );
