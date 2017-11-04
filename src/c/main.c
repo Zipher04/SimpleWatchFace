@@ -17,16 +17,6 @@ static void update_time( void )
   
   // Display this time on the TextLayer
   text_layer_set_text( s_time_layer, s_time_buffer );
-	
-	// Write the current weekday and date into a buffer
-  static char s_weekday_buffer[10];
-  static char s_date_buffer[11];
-  strftime( s_weekday_buffer, sizeof(s_weekday_buffer), "%A", tick_time);
-  strftime( s_date_buffer, sizeof(s_date_buffer), "%F", tick_time);
-
-  // Display this time on the TextLayer
-  text_layer_set_text( s_weekday_layer, s_weekday_buffer );
-  text_layer_set_text( s_date_layer, s_date_buffer );
 }
 
 static void update_day( void )
@@ -35,7 +25,7 @@ static void update_day( void )
   time_t temp_time = time(NULL);
   struct tm *tick_time = localtime(&temp_time);
 	
-	// Write the current weekday and date into a buffer
+  // Write the current weekday and date into a buffer
   static char s_weekday_buffer[10];
   static char s_date_buffer[11];
   strftime( s_weekday_buffer, sizeof(s_weekday_buffer), "%A", tick_time);
@@ -49,7 +39,7 @@ static void update_day( void )
 
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
-  update_time();
+	update_time();
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
@@ -90,10 +80,18 @@ static void main_window_load(Window *window)
   layer_add_child( window_layer, text_layer_get_layer(s_time_layer) );
   layer_add_child( window_layer, text_layer_get_layer(s_weekday_layer) );
   layer_add_child( window_layer, text_layer_get_layer(s_date_layer) );
+	
+  // Make sure the time is displayed from the start
+  update_time();
+  update_day();
+  
+  // Register with TickTimerService
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_minute_handler);
 }
 
 static void main_window_unload(Window *window)
 {
+  tick_timer_service_unsubscribe();
   // Destroy TextLayer
   text_layer_destroy(s_date_layer);
   text_layer_destroy(s_weekday_layer);
@@ -117,12 +115,7 @@ static void Initialize( void )
   // Show the Window on the watch, with animated=true
   window_stack_push(s_main_window, false);
   
-  // Make sure the time is displayed from the start
-  update_time();
-	update_day();
   
-  // Register with TickTimerService
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_minute_handler);
 }
 
 static void Finalize( void )
