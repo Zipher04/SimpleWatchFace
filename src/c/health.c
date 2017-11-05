@@ -14,13 +14,29 @@ typedef enum {
   AverageTypeDaily
 } AverageType;
 
+static int health_updated = false;
 
 static int s_current_steps, s_daily_average, s_current_average;
 static char s_current_steps_buffer[14];
 
 static void health_handler(HealthEventType event, void *context) {
-  health_set_current_steps((int)health_service_sum_today(HealthMetricStepCount));
-  health_update_steps_buffer();
+ if ( event == HealthEventSignificantUpdate || event == HealthEventMovementUpdate )
+  {
+    health_set_current_steps((int)health_service_sum_today(HealthMetricStepCount));
+    health_update_steps_buffer();
+	if ( !health_updated )
+	  health_updated = true;
+  }
+}
+
+int is_health_updated( void )
+{
+  if ( health_updated )
+  {
+	health_updated = false;  
+    return true;		
+  }
+  return false;
 }
 
 static void update_average(AverageType type) {

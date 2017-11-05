@@ -17,3 +17,5 @@ void health_reload_averages();
 void health_update_steps_buffer();
 
 char* health_get_current_steps_buffer();
+
+int is_health_updated( void );

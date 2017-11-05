@@ -76,7 +76,10 @@ static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
 	update_time();
 	update_step();
-	layer_mark_dirty(s_progress_layer);
+	if ( is_health_updated() )
+	{
+	  layer_mark_dirty(s_progress_layer);
+	}
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
