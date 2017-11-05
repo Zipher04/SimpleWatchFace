@@ -4,6 +4,9 @@
     "keywords": [],
     "name": "simple-watch-face",
     "pebble": {
+        "capabilities": [
+            "health"
+        ],
         "displayName": "Simple Watch Face",
         "enableMultiJS": true,
         "messageKeys": [],
