@@ -75,9 +75,9 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
 	update_time();
-	update_step();
 	if ( is_health_updated() )
 	{
+	  update_step();
 	  layer_mark_dirty(s_progress_layer);
 	}
 	if ( 0 != ( units_changed & DAY_UNIT ) )
@@ -130,11 +130,11 @@ static void main_window_load(Window *window)
   layer_set_update_proc( s_progress_layer, progress_update_proc );
   
   // Add it as a child layer to the Window's root layer
-  layer_add_child( window_layer, text_layer_get_layer(s_time_layer) );
   layer_add_child( window_layer, text_layer_get_layer(s_weekday_layer) );
   layer_add_child( window_layer, text_layer_get_layer(s_date_layer) );
+  layer_add_child( window_layer, s_progress_layer);
   layer_add_child( window_layer, text_layer_get_layer(s_step_layer) );
-  layer_add_child( window_layer, s_progress_layer);  
+  layer_add_child( window_layer, text_layer_get_layer(s_time_layer) );
 	
   // Make sure the time is displayed from the start
   update_time();

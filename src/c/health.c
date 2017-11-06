@@ -19,15 +19,6 @@ static int health_updated = false;
 static int s_current_steps, s_daily_average, s_current_average;
 static char s_current_steps_buffer[14];
 
-static void health_handler(HealthEventType event, void *context) {
- if ( event == HealthEventSignificantUpdate || event == HealthEventMovementUpdate )
-  {
-    health_set_current_steps((int)health_service_sum_today(HealthMetricStepCount));
-    health_update_steps_buffer();
-	if ( !health_updated )
-	  health_updated = true;
-  }
-}
 
 int is_health_updated( void )
 {
@@ -85,6 +76,21 @@ static void update_average(AverageType type) {
       if(DEBUG) APP_LOG(APP_LOG_LEVEL_DEBUG, "Current average: %d", s_current_average);
       break;
     default: break;  // Handled by previous switch
+  }
+}
+
+static void health_handler(HealthEventType event, void *context) {
+  if ( event == HealthEventSignificantUpdate || event == HealthEventMovementUpdate )
+  {
+	if ( event == HealthEventSignificantUpdate )
+	{
+		update_average(AverageTypeDaily);
+	}
+	update_average(AverageTypeCurrent);
+    health_set_current_steps((int)health_service_sum_today(HealthMetricStepCount));
+    health_update_steps_buffer();
+	if ( !health_updated )
+	  health_updated = true;
   }
 }
 
