@@ -75,14 +75,17 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
 	update_time();
+	health_reload_averages(0);
 	if ( is_health_updated() )
 	{
+	  health_reload_averages(0);
 	  update_step();
 	  layer_mark_dirty(s_progress_layer);
 	}
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
+		health_reload_averages();
 	}
 }
 
@@ -137,6 +140,7 @@ static void main_window_load(Window *window)
   layer_add_child( window_layer, text_layer_get_layer(s_time_layer) );
 	
   // Make sure the time is displayed from the start
+  health_reload_averages(0);
   update_time();
   update_day();
   update_step();
