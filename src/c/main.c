@@ -13,6 +13,14 @@ static Layer *s_progress_layer;
 
 static int s_battery_level;
 static bool s_is_charging;
+static int s_quiet_start = 22;
+static int s_quiet_end = 8;
+
+#define SETTINGS_PERSIST_KEY 1
+typedef struct {
+  int quiet_start;
+  int quiet_end;
+} __attribute__((__packed__)) SettingsStruct;
 
 static void update_time( void )
 {
@@ -63,12 +71,26 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
   Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
   Tuple *cond_tuple = dict_find(iterator, MESSAGE_KEY_CONDITION);
+  Tuple *qs_tuple = dict_find(iterator, MESSAGE_KEY_QUIET_START);
+  Tuple *qe_tuple = dict_find(iterator, MESSAGE_KEY_QUIET_END);
 
   if(temp_tuple && cond_tuple) {
     snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
     snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
     snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
     text_layer_set_text(s_weather_layer, weather_layer_buffer);
+  }
+  
+  if (qs_tuple && qe_tuple) {
+    s_quiet_start = qs_tuple->value->int32;
+    s_quiet_end = qe_tuple->value->int32;
+    
+    SettingsStruct settings = {
+        .quiet_start = s_quiet_start,
+        .quiet_end = s_quiet_end
+    };
+    persist_write_data(SETTINGS_PERSIST_KEY, &settings, sizeof(settings));
+    APP_LOG(APP_LOG_LEVEL_INFO, "Quiet hours updated: %d - %d", s_quiet_start, s_quiet_end);
   }
 }
 
@@ -128,6 +150,22 @@ static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 	}
 	if ( 0 != ( units_changed & HOUR_UNIT ) )
 	{
+	  // Hourly vibration check
+	  bool quiet = false;
+	  int hour = tick_time->tm_hour;
+	  
+	  if (s_quiet_start < s_quiet_end) {
+	    // Quiet range is within the same day (e.g., 9-17)
+	    if (hour >= s_quiet_start && hour < s_quiet_end) quiet = true;
+	  } else {
+	    // Quiet range spans midnight (e.g., 22-8)
+	    if (hour >= s_quiet_start || hour < s_quiet_end) quiet = true;
+	  }
+	  
+	  if (!quiet) {
+	    vibes_double_pulse();
+	  }
+
 	  DictionaryIterator *iter;
 	  app_message_outbox_begin(&iter);
 	  if (iter) {
@@ -209,6 +247,14 @@ static void main_window_load(Window *window)
   
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_minute_handler);
+
+  // Load settings
+  if (persist_exists(SETTINGS_PERSIST_KEY)) {
+    SettingsStruct settings;
+    persist_read_data(SETTINGS_PERSIST_KEY, &settings, sizeof(settings));
+    s_quiet_start = settings.quiet_start;
+    s_quiet_end = settings.quiet_end;
+  }
 
   // Register with BatteryStateService
   battery_state_service_subscribe(battery_callback);
