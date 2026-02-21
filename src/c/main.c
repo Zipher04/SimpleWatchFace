@@ -126,6 +126,15 @@ static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 	  update_step();
 	  layer_mark_dirty(s_progress_layer);
 	}
+	if ( 0 != ( units_changed & HOUR_UNIT ) )
+	{
+	  DictionaryIterator *iter;
+	  app_message_outbox_begin(&iter);
+	  if (iter) {
+	    dict_write_uint8(iter, 0, 0); // Send a dummy value to trigger JS
+	    app_message_outbox_send();
+	  }
+	}
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
