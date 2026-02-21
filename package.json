@@ -9,7 +9,10 @@
         ],
         "displayName": "Simple Watch Face",
         "enableMultiJS": true,
-        "messageKeys": [],
+        "messageKeys": [
+            "TEMPERATURE",
+            "CONDITION"
+        ],
         "projectType": "native",
         "resources": {
             "media": []

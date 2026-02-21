@@ -8,7 +8,10 @@ static TextLayer *s_time_layer;
 static TextLayer *s_weekday_layer;
 static TextLayer *s_date_layer;
 static TextLayer *s_step_layer;
+static TextLayer *s_weather_layer;
 static Layer *s_progress_layer;
+
+static int s_battery_level;
 
 static void update_time( void )
 {
@@ -46,6 +49,39 @@ static void update_step( void )
   text_layer_set_text( s_step_layer, health_get_current_steps_buffer() );
 }
 
+static void battery_callback(BatteryChargeState state) {
+  s_battery_level = state.charge_percent;
+  layer_mark_dirty(s_progress_layer);
+}
+
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+  static char temp_buffer[8];
+  static char cond_buffer[32];
+  static char weather_layer_buffer[40];
+
+  Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
+  Tuple *cond_tuple = dict_find(iterator, MESSAGE_KEY_CONDITION);
+
+  if(temp_tuple && cond_tuple) {
+    snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
+    snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
+    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
+    text_layer_set_text(s_weather_layer, weather_layer_buffer);
+  }
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
 static void progress_update_proc(Layer *layer, GContext *ctx) 
 {
   GRect bounds = layer_get_bounds(layer);
@@ -68,8 +104,13 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   }
 
   // Perform drawing
-  graphics_fill_outer_ring(ctx, current_steps, fill_thickness, bounds, scheme_color, daily_average );
-  graphics_fill_goal_line(ctx, daily_average, 8, 4, bounds, GColorYellow, current_average );
+  // Draw battery ring (outermost)
+  graphics_fill_outer_ring(ctx, s_battery_level, 6, bounds, GColorCobaltBlue, 100);
+
+  // Draw steps ring (inside battery ring)
+  GRect step_bounds = grect_inset(bounds, GEdgeInsets(8));
+  graphics_fill_outer_ring(ctx, current_steps, fill_thickness, step_bounds, scheme_color, daily_average );
+  graphics_fill_goal_line(ctx, daily_average, 8, 4, step_bounds, GColorYellow, current_average );
 }
 
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
@@ -106,6 +147,8 @@ static void main_window_load(Window *window)
       GRect(0, PBL_IF_ROUND_ELSE(115, 90), bounds.size.w, 25));
   s_step_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(115, 115), bounds.size.w, 25));
+  s_weather_layer = text_layer_create(
+      GRect(0, PBL_IF_ROUND_ELSE(140, 140), bounds.size.w, 25));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color( s_time_layer, GColorClear );
@@ -127,6 +170,12 @@ static void main_window_load(Window *window)
   text_layer_set_text_color( s_step_layer, GColorWhite );
   text_layer_set_font( s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24) );
   text_layer_set_text_alignment( s_step_layer, GTextAlignmentCenter );
+
+  text_layer_set_background_color( s_weather_layer, GColorClear );
+  text_layer_set_text_color( s_weather_layer, GColorWhite );
+  text_layer_set_font( s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18) );
+  text_layer_set_text_alignment( s_weather_layer, GTextAlignmentCenter );
+  text_layer_set_text( s_weather_layer, "Loading..." );
 	
   graphics_set_window( window );
   s_progress_layer = layer_create( bounds );
@@ -137,6 +186,7 @@ static void main_window_load(Window *window)
   layer_add_child( window_layer, text_layer_get_layer(s_date_layer) );
   layer_add_child( window_layer, s_progress_layer);
   layer_add_child( window_layer, text_layer_get_layer(s_step_layer) );
+  layer_add_child( window_layer, text_layer_get_layer(s_weather_layer) );
   layer_add_child( window_layer, text_layer_get_layer(s_time_layer) );
 	
   // Make sure the time is displayed from the start
@@ -147,14 +197,30 @@ static void main_window_load(Window *window)
   
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_minute_handler);
+
+  // Register with BatteryStateService
+  battery_state_service_subscribe(battery_callback);
+  battery_callback(battery_state_service_peek());
+
+  // AppMessage listeners
+  app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
+
+  const int inbox_size = 128;
+  const int outbox_size = 128;
+  app_message_open(inbox_size, outbox_size);
 }
 
 static void main_window_unload(Window *window)
 {
   tick_timer_service_unsubscribe();
+  battery_state_service_unsubscribe();
 
   // Destroy TextLayer
   layer_destroy(s_progress_layer);
+  text_layer_destroy(s_weather_layer);
   text_layer_destroy(s_step_layer);
   text_layer_destroy(s_date_layer);
   text_layer_destroy(s_weekday_layer);
