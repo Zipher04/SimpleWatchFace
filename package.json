@@ -6,7 +6,8 @@
     "pebble": {
         "capabilities": [
             "health",
-            "location"
+            "location",
+            "configurable"
         ],
         "displayName": "Simple Watch Face",
         "enableMultiJS": true,
