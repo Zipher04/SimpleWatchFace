@@ -129,7 +129,14 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 
   // Perform drawing
   // Draw battery ring (outermost)
-  GColor battery_color = s_is_charging ? GColorJaegerGreen : GColorYellow;
+  GColor battery_color;
+  if (s_is_charging) {
+    battery_color = GColorJaegerGreen;
+  } else if (s_battery_level < 30) {
+    battery_color = GColorRed;
+  } else {
+    battery_color = GColorYellow;
+  }
   graphics_fill_outer_ring(ctx, s_battery_level, 1, bounds, battery_color, 100);
 
   // Draw steps ring (inside battery ring)
@@ -225,7 +232,7 @@ static void main_window_load(Window *window)
   text_layer_set_text_color( s_weather_layer, GColorWhite );
   text_layer_set_font( s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18) );
   text_layer_set_text_alignment( s_weather_layer, GTextAlignmentCenter );
-  text_layer_set_text( s_weather_layer, "Loading..." );
+  text_layer_set_text( s_weather_layer, "" );
 	
   graphics_set_window( window );
   s_progress_layer = layer_create( bounds );

@@ -12,6 +12,10 @@ function getWeather() {
     var myAPIKey = localStorage.getItem('weather_api_key');
     if (!myAPIKey) {
         console.log('No API Key configured!');
+        Pebble.sendAppMessage({
+            'TEMPERATURE': 0,
+            'CONDITION': ''
+        });
         return;
     }
 
