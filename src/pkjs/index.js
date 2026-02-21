@@ -1,13 +1,13 @@
 var myAPIKey = 'YOUR_OPENWEATHERMAP_API_KEY';
 
-function iconFromId(id) {
-    if (id < 300) return '⛈️';
-    else if (id < 600) return '🌧️';
-    else if (id < 700) return '❄️';
-    else if (id < 800) return '🌫️';
-    else if (id == 800) return '☀️';
-    else if (id < 900) return '☁️';
-    else return '❓';
+function descFromId(id) {
+    if (id < 300) return 'Thunder';
+    else if (id < 600) return 'Rain';
+    else if (id < 700) return 'Snow';
+    else if (id < 800) return 'Fog';
+    else if (id == 800) return 'Clear';
+    else if (id < 900) return 'Cloudy';
+    else return 'Unknown';
 }
 
 function getWeather() {
@@ -34,7 +34,7 @@ function getWeather() {
                 var json = JSON.parse(this.responseText);
                 var dictionary = {
                     'TEMPERATURE': Math.round(json.main.temp),
-                    'CONDITION': iconFromId(json.weather[0].id)
+                    'CONDITION': descFromId(json.weather[0].id)
                 };
 
                 localStorage.setItem('cached_weather', JSON.stringify(dictionary));

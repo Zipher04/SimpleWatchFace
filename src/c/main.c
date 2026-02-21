@@ -12,6 +12,7 @@ static TextLayer *s_weather_layer;
 static Layer *s_progress_layer;
 
 static int s_battery_level;
+static bool s_is_charging;
 
 static void update_time( void )
 {
@@ -51,6 +52,7 @@ static void update_step( void )
 
 static void battery_callback(BatteryChargeState state) {
   s_battery_level = state.charge_percent;
+  s_is_charging = state.is_charging;
   layer_mark_dirty(s_progress_layer);
 }
 
@@ -105,10 +107,11 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 
   // Perform drawing
   // Draw battery ring (outermost)
-  graphics_fill_outer_ring(ctx, s_battery_level, 6, bounds, GColorCobaltBlue, 100);
+  GColor battery_color = s_is_charging ? GColorJaegerGreen : GColorCobaltBlue;
+  graphics_fill_outer_ring(ctx, s_battery_level, 2, bounds, battery_color, 100);
 
   // Draw steps ring (inside battery ring)
-  GRect step_bounds = grect_inset(bounds, GEdgeInsets(8));
+  GRect step_bounds = grect_inset(bounds, GEdgeInsets(4));
   graphics_fill_outer_ring(ctx, current_steps, fill_thickness, step_bounds, scheme_color, daily_average );
   graphics_fill_goal_line(ctx, daily_average, 8, 4, step_bounds, GColorYellow, current_average );
 }
@@ -140,15 +143,15 @@ static void main_window_load(Window *window)
 	
   // Create the TextLayer with specific bounds
   s_time_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(58, 42), bounds.size.w, 50));
+      GRect(0, PBL_IF_ROUND_ELSE(46, 30), bounds.size.w, 50));
   s_weekday_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(30, 22), bounds.size.w, 30));
+      GRect(0, PBL_IF_ROUND_ELSE(18, 10), bounds.size.w, 30));
   s_date_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(115, 90), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(95, 78), bounds.size.w, 25));
   s_step_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(115, 115), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(115, 103), bounds.size.w, 25));
   s_weather_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(140, 140), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(140, 128), bounds.size.w, 25));
 
   // Improve the layout to be more like a watchface
   text_layer_set_background_color( s_time_layer, GColorClear );
