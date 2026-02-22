@@ -137,10 +137,10 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   } else {
     battery_color = GColorYellow;
   }
-  graphics_fill_outer_ring(ctx, s_battery_level, 1, bounds, battery_color, 100);
+  graphics_fill_outer_ring(ctx, s_battery_level, 2, bounds, battery_color, 100);
 
   // Draw steps ring (inside battery ring)
-  GRect step_bounds = grect_inset(bounds, GEdgeInsets(1));
+  GRect step_bounds = grect_inset(bounds, GEdgeInsets(2));
   graphics_fill_outer_ring(ctx, current_steps, fill_thickness, step_bounds, scheme_color, daily_average );
   graphics_fill_goal_line(ctx, daily_average, 8, 4, step_bounds, GColorYellow, current_average );
 }
