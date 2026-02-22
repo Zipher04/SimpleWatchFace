@@ -152,7 +152,7 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
 	update_time();
-	health_reload_averages(0);
+	//health_reload_averages(0);
 	if ( is_health_updated() )
 	{
 	  health_reload_averages(0);
@@ -187,7 +187,7 @@ static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
-		health_reload_averages();
+		health_reload_averages(0);
 	}
 }
 
@@ -231,12 +231,13 @@ static void main_window_load(Window *window)
   text_layer_set_text_color( s_step_layer, GColorWhite );
   text_layer_set_font( s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24) );
   text_layer_set_text_alignment( s_step_layer, GTextAlignmentCenter );
+  //text_layer_set_text( s_step_layer, "\U0001F4951,234" );
 
   text_layer_set_background_color( s_weather_layer, GColorClear );
   text_layer_set_text_color( s_weather_layer, GColorWhite );
   text_layer_set_font( s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18) );
   text_layer_set_text_alignment( s_weather_layer, GTextAlignmentCenter );
-  text_layer_set_text( s_weather_layer, "" );
+  //text_layer_set_text( s_weather_layer, "Cloudy, 22°C" );
 	
   graphics_set_window( window );
   s_progress_layer = layer_create( bounds );
