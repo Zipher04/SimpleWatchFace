@@ -3,6 +3,8 @@
 #include "health.h"
 #include "graphics.h"
 
+//#define DEBUG_LAYOUT
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static TextLayer *s_weekday_layer;
@@ -75,10 +77,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   Tuple *qe_tuple = dict_find(iterator, MESSAGE_KEY_QUIET_END);
 
   if(temp_tuple && cond_tuple) {
-    snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
-    snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
-    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
-    text_layer_set_text(s_weather_layer, weather_layer_buffer);
+    if (strlen(cond_tuple->value->cstring) > 0) {
+      snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
+      snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
+      snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
+      text_layer_set_text(s_weather_layer, weather_layer_buffer);
+    } else {
+      text_layer_set_text(s_weather_layer, "");
+    }
   }
   
   if (qs_tuple && qe_tuple) {
@@ -114,6 +120,14 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   int daily_average = health_get_daily_average();
   int current_average = health_get_current_average();
 
+  #ifdef DEBUG_LAYOUT
+  text_layer_set_text( s_step_layer, "\U0001F4951,234" );
+  text_layer_set_text( s_weather_layer, "Cloudy, 22°C" );
+  current_steps = 1234;
+  daily_average = 5000;
+  current_average = 1500;
+  #endif
+
   // Set new exceeded daily average
   if(current_steps > daily_average) {
     daily_average = current_steps;
@@ -137,10 +151,10 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   } else {
     battery_color = GColorYellow;
   }
-  graphics_fill_outer_ring(ctx, s_battery_level, 1, bounds, battery_color, 100);
+  graphics_fill_outer_ring(ctx, s_battery_level, 2, bounds, battery_color, 100);
 
   // Draw steps ring (inside battery ring)
-  GRect step_bounds = grect_inset(bounds, GEdgeInsets(1));
+  GRect step_bounds = grect_inset(bounds, GEdgeInsets(2));
   graphics_fill_outer_ring(ctx, current_steps, fill_thickness, step_bounds, scheme_color, daily_average );
   graphics_fill_goal_line(ctx, daily_average, 8, 4, step_bounds, GColorYellow, current_average );
 }
@@ -148,7 +162,7 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
 static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 {
 	update_time();
-	health_reload_averages(0);
+	//health_reload_averages(0);
 	if ( is_health_updated() )
 	{
 	  health_reload_averages(0);
@@ -183,7 +197,7 @@ static void tick_minute_handler(struct tm *tick_time, TimeUnits units_changed)
 	if ( 0 != ( units_changed & DAY_UNIT ) )
 	{
 		update_day();
-		health_reload_averages();
+		health_reload_averages(0);
 	}
 }
 
@@ -201,7 +215,7 @@ static void main_window_load(Window *window)
   s_weekday_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(18, 10), bounds.size.w, 30));
   s_date_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(95, 78), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(95, 83), bounds.size.w, 25));
   s_step_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(115, 103), bounds.size.w, 25));
   s_weather_layer = text_layer_create(
@@ -220,19 +234,18 @@ static void main_window_load(Window *window)
   
   text_layer_set_background_color( s_date_layer, GColorClear );
   text_layer_set_text_color( s_date_layer, GColorWhite );
-  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD) );
+  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS) );
   text_layer_set_text_alignment( s_date_layer, GTextAlignmentCenter );
 	
   text_layer_set_background_color( s_step_layer, GColorClear );
   text_layer_set_text_color( s_step_layer, GColorWhite );
   text_layer_set_font( s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24) );
   text_layer_set_text_alignment( s_step_layer, GTextAlignmentCenter );
-
+ 
   text_layer_set_background_color( s_weather_layer, GColorClear );
   text_layer_set_text_color( s_weather_layer, GColorWhite );
   text_layer_set_font( s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18) );
   text_layer_set_text_alignment( s_weather_layer, GTextAlignmentCenter );
-  text_layer_set_text( s_weather_layer, "" );
 	
   graphics_set_window( window );
   s_progress_layer = layer_create( bounds );
