@@ -215,7 +215,7 @@ static void main_window_load(Window *window)
   s_weekday_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(18, 10), bounds.size.w, 30));
   s_date_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(95, 83), bounds.size.w, 20));
+      GRect(0, PBL_IF_ROUND_ELSE(95, 83), bounds.size.w, 25));
   s_step_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(115, 103), bounds.size.w, 25));
   s_weather_layer = text_layer_create(
@@ -234,7 +234,7 @@ static void main_window_load(Window *window)
   
   text_layer_set_background_color( s_date_layer, GColorClear );
   text_layer_set_text_color( s_date_layer, GColorWhite );
-  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD) );
+  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS) );
   text_layer_set_text_alignment( s_date_layer, GTextAlignmentCenter );
 	
   text_layer_set_background_color( s_step_layer, GColorClear );
