@@ -75,10 +75,14 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   Tuple *qe_tuple = dict_find(iterator, MESSAGE_KEY_QUIET_END);
 
   if(temp_tuple && cond_tuple) {
-    snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
-    snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
-    snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
-    text_layer_set_text(s_weather_layer, weather_layer_buffer);
+    if (strlen(cond_tuple->value->cstring) > 0) {
+      snprintf(temp_buffer, sizeof(temp_buffer), "%d°C", (int)temp_tuple->value->int32);
+      snprintf(cond_buffer, sizeof(cond_buffer), "%s", cond_tuple->value->cstring);
+      snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", cond_buffer, temp_buffer);
+      text_layer_set_text(s_weather_layer, weather_layer_buffer);
+    } else {
+      text_layer_set_text(s_weather_layer, "");
+    }
   }
   
   if (qs_tuple && qe_tuple) {
