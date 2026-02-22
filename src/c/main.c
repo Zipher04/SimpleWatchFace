@@ -3,6 +3,8 @@
 #include "health.h"
 #include "graphics.h"
 
+//#define DEBUG_LAYOUT
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static TextLayer *s_weekday_layer;
@@ -118,6 +120,14 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   int daily_average = health_get_daily_average();
   int current_average = health_get_current_average();
 
+  #ifdef DEBUG_LAYOUT
+  text_layer_set_text( s_step_layer, "\U0001F4951,234" );
+  text_layer_set_text( s_weather_layer, "Cloudy, 22°C" );
+  current_steps = 1234;
+  daily_average = 5000;
+  current_average = 1500;
+  #endif
+
   // Set new exceeded daily average
   if(current_steps > daily_average) {
     daily_average = current_steps;
@@ -205,7 +215,7 @@ static void main_window_load(Window *window)
   s_weekday_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(18, 10), bounds.size.w, 30));
   s_date_layer = text_layer_create(
-      GRect(0, PBL_IF_ROUND_ELSE(95, 78), bounds.size.w, 25));
+      GRect(0, PBL_IF_ROUND_ELSE(95, 83), bounds.size.w, 20));
   s_step_layer = text_layer_create(
       GRect(0, PBL_IF_ROUND_ELSE(115, 103), bounds.size.w, 25));
   s_weather_layer = text_layer_create(
@@ -231,13 +241,11 @@ static void main_window_load(Window *window)
   text_layer_set_text_color( s_step_layer, GColorWhite );
   text_layer_set_font( s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24) );
   text_layer_set_text_alignment( s_step_layer, GTextAlignmentCenter );
-  //text_layer_set_text( s_step_layer, "\U0001F4951,234" );
-
+ 
   text_layer_set_background_color( s_weather_layer, GColorClear );
   text_layer_set_text_color( s_weather_layer, GColorWhite );
   text_layer_set_font( s_weather_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18) );
   text_layer_set_text_alignment( s_weather_layer, GTextAlignmentCenter );
-  //text_layer_set_text( s_weather_layer, "Cloudy, 22°C" );
 	
   graphics_set_window( window );
   s_progress_layer = layer_create( bounds );
