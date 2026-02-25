@@ -49,6 +49,11 @@ static void update_day( void )
   static char s_date_buffer[11];
   strftime( s_weekday_buffer, sizeof(s_weekday_buffer), "%A", tick_time);
   strftime( s_date_buffer, sizeof(s_date_buffer), "%F", tick_time);
+  
+  #ifdef DEBUG_LAYOUT
+  static char s_date_dummy_buffer[11] = "1234567890";
+  snprintf(s_date_buffer, sizeof(s_date_buffer), "%s", s_date_dummy_buffer);
+  #endif
 
   // Display this time on the TextLayer
   text_layer_set_text( s_weekday_layer, s_weekday_buffer );
@@ -145,7 +150,7 @@ static void progress_update_proc(Layer *layer, GContext *ctx)
   // Draw battery ring (outermost)
   GColor battery_color;
   if (s_is_charging) {
-    battery_color = GColorJaegerGreen;
+    battery_color = GColorBrightGreen;
   } else if (s_battery_level < 30) {
     battery_color = GColorRed;
   } else {
@@ -234,7 +239,7 @@ static void main_window_load(Window *window)
   
   text_layer_set_background_color( s_date_layer, GColorClear );
   text_layer_set_text_color( s_date_layer, GColorWhite );
-  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS) );
+  text_layer_set_font( s_date_layer, fonts_get_system_font(FONT_KEY_ROBOTO_CONDENSED_21) );
   text_layer_set_text_alignment( s_date_layer, GTextAlignmentCenter );
 	
   text_layer_set_background_color( s_step_layer, GColorClear );
