@@ -47,7 +47,7 @@ static void update_average(AverageType type) {
   switch(type) {
     case AverageTypeDaily:
       // One whole day
-      end = start + SECONDS_PER_DAY;
+      end = start + SECONDS_PER_DAY - 1;
       break;
     case AverageTypeCurrent:
       // Time from midnight to now
